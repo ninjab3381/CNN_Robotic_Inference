@@ -8,9 +8,9 @@ Original file is located at
 """
 
 # Commented out IPython magic to ensure Python compatibility.
-from tensorflow.keras.applications import resnet50
 import tensorflow as tf
 import keras
+from tensorflow.keras.applications import resnet50
 import urllib.request
 import cv2
 import numpy as np
@@ -30,21 +30,12 @@ resnet50_model.build((None, 224, 224, 3))
 resnet50_model.summary()
 
 # image loader
-def get_cropped_image(loc, resize=400):
+def get_cropped_image(img, resize=400):
   """
-  downloads an image from url, converts to numpy array,
   resizes, and returns it
   """
-  img = cv2.imread(loc)
-  # img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-  img = cv2.resize(img, (400, 400), interpolation=cv2.INTER_CUBIC)
-
-
-  # cropped = img[50:274, 50:274] - spoon
-  cropped = img[100:324, 100:324]
-
-  return cropped
-
+  img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_CUBIC)
+  return img
 
 res = {}
 lbl = ['alfoil', 'box', 'cbcontainer', 'cokecan', 'glassbottle', 'm_and_m', 'milkcan', 'plasticbottle', 'spoon', 'steelspoon', 'straw']
@@ -58,11 +49,11 @@ import cv2
 # display_width and display_height determine the size of the window on the screen
 
 def gstreamer_pipeline(
-    capture_width=1280,
-    capture_height=720,
-    display_width=1280,
-    display_height=720,
-    framerate=60,
+    capture_width=2000,
+    capture_height=2000,
+    display_width=640,
+    display_height=640,
+    framerate=15,
     flip_method=0,
 ):
     return (
@@ -84,13 +75,10 @@ def gstreamer_pipeline(
         )
     )
 
-
+lbl = ['alfoil', 'box', 'cbcontainer', 'cokecan', 'glassbottle', 'm_and_m', 'milkcan', 'plasticbottle', 'spoon', 'steelspoon', 'straw']
 cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
 
 def get_image():
-    print(cv2.getBuildInformation())
-    print(gstreamer_pipeline(flip_method=0))
-    number = 1
     if cap.isOpened():
         window_handle = cv2.namedWindow("CSI Camera", cv2.WINDOW_AUTOSIZE)
         # Window
@@ -99,35 +87,30 @@ def get_image():
             ret_val, img = cap.read()
             cv2.imshow("CSI Camera", img)
             if cv2.waitKey(1) & 0xFF == 27:
-                loc = 'Pics/' + "tmp" + "_" + str(number) + ".png"
-                cv2.imwrite(loc, img)
-                print ("Saving image number: " + str(number))
-                number += 1
-                return loc
+                return img
     else:
         print("Unable to open camera")
 
 for x in range(5):
+    img = get_image()
 
-    loc = get_image()
-    print(loc)
-
-    cropped_img = get_cropped_image(loc)
+    cropped_img = get_cropped_image(img)
     plt.imshow(cropped_img)
+    plt.show(block=False)
+    plt.pause(3)
+    plt.close()
 
     # convert the PIL image to a numpy array
     # IN PIL - image is in (width, height, channel)
     # In Numpy - image is in (height, width, channel)a
     numpy_image = img_to_array(cropped_img)
     plt.imshow(np.uint8(numpy_image))
-    print('numpy array size',numpy_image.shape)
  
     # Convert the image / images into batch format
     # expand_dims will add an extra dimension to the data at a particular axis
     # We want the input matrix to the network to be of the form (batchsize, height, width, channels)
     # Thus we add the extra dimension to the axis 0.
     image_batch = np.expand_dims(numpy_image, axis=0)
-    print('image batch size', image_batch.shape)
     plt.imshow(np.uint8(image_batch[0]))
 
     # prepare the image for the inception_v3 model
@@ -135,13 +118,11 @@ for x in range(5):
  
     # get the predicted probabilities for each class
     predictions = resnet50_model.predict(processed_image)
-    print(predictions)
-    lbl = ['alfoil', 'box', 'cbcontainer', 'cokecan', 'glassbottle', 'm_and_m', 'milkcan', 'plasticbottle', 'spoon', 'steelspoon', 'straw']
     lst = list(zip(predictions[0], lbl))
     from operator import itemgetter
     mx = max(lst, key = itemgetter(0))
     predicted_cls = mx[1]
-    print(predicted_cls)
+    print("Predicted image class = " + predicted_cls)
 
 cap.release()
 cv2.destroyAllWindows()

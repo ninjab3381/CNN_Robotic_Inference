@@ -18,8 +18,11 @@ from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.applications.imagenet_utils import decode_predictions
 import matplotlib.pyplot as plt
+import serial
+import time
+import warnings
 
-print(tf.__version__)
+warnings.filterwarnings("ignore")
 
 # Recreate the exact same model, including its weights and the optimizer
 resnet50_model = tf.keras.models.load_model("/home/ninja/synopsys/models/cnn_resnet50/resnet_model.h5")
@@ -39,9 +42,6 @@ def get_cropped_image(img, resize=400):
 
 res = {}
 lbl = ['alfoil', 'box', 'cbcontainer', 'cokecan', 'glassbottle', 'm_and_m', 'milkcan', 'plasticbottle', 'spoon', 'steelspoon', 'straw']
-
-# Commented out IPython magic to ensure Python compatibility.
-import cv2
 
 # gstreamer_pipeline returns a GStreamer pipeline for capturing from the CSI camera
 # Defaults to 1280x720 @ 60fps
@@ -76,6 +76,9 @@ def gstreamer_pipeline(
     )
 
 lbl = ['alfoil', 'box', 'cbcontainer', 'cokecan', 'glassbottle', 'm_and_m', 'milkcan', 'plasticbottle', 'spoon', 'steelspoon', 'straw']
+recyclable_lbl = ['alfoil', 'box', 'cbcontainer', 'cokecan', 'milkcan', 'plasticbottle', 'spoon']
+nonrecylable_lbl = ['glassbottle', 'm_and_m', 'steelspoon', 'straw']
+predicted_cls = None
 cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
 
 def get_image():
@@ -93,7 +96,6 @@ def get_image():
 
 for x in range(5):
     img = get_image()
-
     cropped_img = get_cropped_image(img)
     plt.imshow(cropped_img)
     plt.show(block=False)
@@ -117,12 +119,24 @@ for x in range(5):
     processed_image = resnet50.preprocess_input(image_batch.copy())
  
     # get the predicted probabilities for each class
+    start_time = time.time()
     predictions = resnet50_model.predict(processed_image)
+    print("--- %s seconds ---" % (time.time() - start_time))
     lst = list(zip(predictions[0], lbl))
     from operator import itemgetter
     mx = max(lst, key = itemgetter(0))
     predicted_cls = mx[1]
     print("Predicted image class = " + predicted_cls)
+    with serial.Serial('/dev/ttyUSB0', 9600, timeout=500) as ser:
+        input('Lets Put this in bin ')
+        if predicted_cls in recyclable_lbl:
+            print("It is Recyclable")
+            ser.write(bytes('Y\n','utf-8'))
+        else:
+            print("It is Not Recyclable")
+            ser.write(bytes('N\n','utf-8'))
+    time.sleep(10)
 
 cap.release()
 cv2.destroyAllWindows()
+

@@ -85,7 +85,7 @@ def get_image():
     if cap.isOpened():
         window_handle = cv2.namedWindow("CSI Camera", cv2.WINDOW_AUTOSIZE)
         # Window
-        print("Press ESC key when ready")
+        print("Press ESC key when ready to take picture....")
         while cv2.getWindowProperty("CSI Camera", 0) >= 0:
             ret_val, img = cap.read()
             cv2.imshow("CSI Camera", img)
@@ -94,48 +94,48 @@ def get_image():
     else:
         print("Unable to open camera")
 
-for x in range(5):
-    img = get_image()
-    cropped_img = get_cropped_image(img)
-    plt.imshow(cropped_img)
-    plt.show(block=False)
-    plt.pause(3)
-    plt.close()
+with serial.Serial('/dev/ttyUSB0', 9600, timeout=500) as ser:
+    for x in range(5):
+        img = get_image()
+        cropped_img = get_cropped_image(img)
+        plt.imshow(cropped_img)
+        plt.show(block=False)
+        plt.pause(3)
+        plt.close()
 
-    # convert the PIL image to a numpy array
-    # IN PIL - image is in (width, height, channel)
-    # In Numpy - image is in (height, width, channel)a
-    numpy_image = img_to_array(cropped_img)
-    plt.imshow(np.uint8(numpy_image))
+        # convert the PIL image to a numpy array
+        # IN PIL - image is in (width, height, channel)
+        # In Numpy - image is in (height, width, channel)a
+        numpy_image = img_to_array(cropped_img)
+        plt.imshow(np.uint8(numpy_image))
  
-    # Convert the image / images into batch format
-    # expand_dims will add an extra dimension to the data at a particular axis
-    # We want the input matrix to the network to be of the form (batchsize, height, width, channels)
-    # Thus we add the extra dimension to the axis 0.
-    image_batch = np.expand_dims(numpy_image, axis=0)
-    plt.imshow(np.uint8(image_batch[0]))
+        # Convert the image / images into batch format
+        # expand_dims will add an extra dimension to the data at a particular axis
+        # We want the input matrix to the network to be of the form (batchsize, height, width, channels)
+        # Thus we add the extra dimension to the axis 0.
+        image_batch = np.expand_dims(numpy_image, axis=0)
+        plt.imshow(np.uint8(image_batch[0]))
 
-    # prepare the image for the inception_v3 model
-    processed_image = resnet50.preprocess_input(image_batch.copy())
+        # prepare the image for the inception_v3 model
+        processed_image = resnet50.preprocess_input(image_batch.copy())
  
-    # get the predicted probabilities for each class
-    start_time = time.time()
-    predictions = resnet50_model.predict(processed_image)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    lst = list(zip(predictions[0], lbl))
-    from operator import itemgetter
-    mx = max(lst, key = itemgetter(0))
-    predicted_cls = mx[1]
-    print("Predicted image class = " + predicted_cls)
-    with serial.Serial('/dev/ttyUSB0', 9600, timeout=500) as ser:
-        input('Lets Put this in bin ')
+        print()
+        # get the predicted probabilities for each class
+        start_time = time.time()
+        predictions = resnet50_model.predict(processed_image)
+        print("--- %s seconds ---" % (time.time() - start_time))
+        lst = list(zip(predictions[0], lbl))
+        from operator import itemgetter
+        mx = max(lst, key = itemgetter(0))
+        predicted_cls = mx[1]
+        print("Predicted image class = " + predicted_cls)
         if predicted_cls in recyclable_lbl:
             print("It is Recyclable")
             ser.write(bytes('Y\n','utf-8'))
         else:
             print("It is Not Recyclable")
             ser.write(bytes('N\n','utf-8'))
-    time.sleep(10)
+        time.sleep(10)
 
 cap.release()
 cv2.destroyAllWindows()

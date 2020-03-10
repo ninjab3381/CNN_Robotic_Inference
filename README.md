@@ -9,6 +9,9 @@ Detection and classification of recyclable items to help recyclable facility rob
    - includes the images of the recyclable and non-recycable objects used in training and validation of ConvNets. 
    - The images were taken using a Mac camera and the OpenCV-Python library
  
+ - ### prediction_pics folder
+   - Set of original images and the image recorded by the camera and sent to the ConvNet model for prediction
+ 
  - ### cnn_resnet_load_camera.py
    - Python main program
    - Loaded in Jetson Nano

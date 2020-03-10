@@ -13,5 +13,5 @@ Detection and classification of recyclable items to help recyclable facility rob
    - Invoke the trained model to read the image and predict the class
    - Based on the prediction, send a signal to the Nano Microcontroller to bin the item correctly
    
- - ## cnn_resnet.ipynb, cnn_inception.ipynb cnn_vgg.ipynb
+ - ## cnn_resnet.ipynb, cnn_inception.ipynb, cnn_vgg.ipynb
    - Programs created using Jupyter notebook in Google Colab to create the trained ConvNet models

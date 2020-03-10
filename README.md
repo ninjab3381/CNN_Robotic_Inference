@@ -18,3 +18,9 @@ Detection and classification of recyclable items to help recyclable facility rob
    
  - ## picmac.py
    - Program to take images of recyclable and non-recyclable objects using Mac's integrated camera and OpenCV-Python library
+
+ - ## testarduino/djhost/djhost.ino
+   - Program loaded in nano microcontroller
+   - Moves Smart Servo Motors
+   - If value received is 'Y' (i.e. recyclable), it moves them to one place. 
+   - If value received is 'N' (i.e. non-recyclable), it moves them to the other place. 

@@ -27,3 +27,6 @@ Detection and classification of recyclable items to help recyclable facility rob
    - Moves Smart Servo Motors
    - If value received is 'Y' (i.e. recyclable), it moves them to one place. 
    - If value received is 'N' (i.e. non-recyclable), it moves them to the other place. 
+
+## Hardware Design Model
+![alt text](Science_Fair/hardware_model.png "Hardware Design Model")

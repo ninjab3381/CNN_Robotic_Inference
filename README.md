@@ -15,3 +15,6 @@ Detection and classification of recyclable items to help recyclable facility rob
    
  - ## cnn_resnet.ipynb, cnn_inception.ipynb, cnn_vgg.ipynb
    - Programs created using Jupyter notebook in Google Colab to create the trained ConvNet models
+   
+ - ## picmac.py
+   - Program to take images of recyclable and non-recyclable objects using Mac's integrated camera and OpenCV-Python library

@@ -1,4 +1,4 @@
-# CNN_Robotic_Inference
+# ConvNet Robotic Inference to solve America's Recycling Problem
 Detection and classification of recyclable items to help recyclable facility robots identify and pick them up correctly
 
  - pics folder
